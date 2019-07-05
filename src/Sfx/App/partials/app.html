@@ -135,7 +135,7 @@
             <sfx-detail-list list="app.health.healthEvents" list-settings="healthEventsListSettings"></sfx-detail-list>
         </div>
 
-        <div class="detail-pane">
+        <div class="detail-pane" ng-if="!app.data.hide">
             <h4>Application Backup Configuration</h4>
             <sfx-detail-list list="app.applicationBackupConfigurationInfoCollection" list-settings="applicationBackupConfigurationInfoListSettings"></sfx-detail-list>
         </div>

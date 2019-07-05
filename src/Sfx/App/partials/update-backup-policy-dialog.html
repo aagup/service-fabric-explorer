@@ -8,34 +8,36 @@
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupPolicy.Name" required aria-label="Backup Policy name" readonly="readonly">
             </dd>
-            <dt>AutoRestoreOnDataLoss</dt>
+            <dt>AutoRestore On DataLoss</dt>
             <dd class="checkbox-container-default">
                 <input type="checkbox" ng-model="action.backupPolicy.AutoRestoreOnDataLoss" />
             </dd>
-            <dt>MaxIncrementalBackups</dt>
+            <dt>Max Incremental Backups</dt>
             <dd>
                 <input type="number" class="input-flat" ng-model="action.backupPolicy.MaxIncrementalBackups" required />
             </dd>
-            <dt>ScheduleKind</dt>
+            <dt>Schedule Kind</dt>
             <dd required>
                 <label>
                     <input type="radio" ng-model="action.backupPolicy.Schedule.ScheduleKind" value="FrequencyBased">
-                    FrequencyBased
+                    Frequency Based
                 </label>
                 <label>
                     <input type="radio" ng-model="action.backupPolicy.Schedule.ScheduleKind" value="TimeBased">
-                    TimeBased
+                    Time Based
                 </label><br />
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.backupPolicy.Schedule.ScheduleKind || action.backupPolicy.Schedule.ScheduleKind!=='FrequencyBased'">
             <dt>Interval</dt>
             <dd>
-                <input type="text" class="input-flat" ng-model="action.backupPolicy.Schedule.Interval" />
+                <input type="number" style="width: 15%;" class="input-flat" ng-model="action.days" min="0" max="14" placeholder="Days" />
+                <input type="number" style="width: 15%;" class="input-flat" ng-model="action.hours" min="0" max="23" placeholder="Hours" />
+                <input type="number" style="width: 15%;" class="input-flat" ng-model="action.minutes" min="0" max="59" placeholder="Minutes" />
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.backupPolicy.Schedule.ScheduleKind ||  action.backupPolicy.Schedule.ScheduleKind!=='TimeBased'">
-            <dt>ScheduleFrequencyType</dt>
+            <dt>Schedule Frequency Type</dt>
             <dd>
                 <label>
                     <input type="radio" ng-model="action.backupPolicy.Schedule.ScheduleFrequencyType" value="Daily">
@@ -48,101 +50,102 @@
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.backupPolicy.Schedule.ScheduleKind || action.backupPolicy.Schedule.ScheduleKind!=='TimeBased' || action.backupPolicy.Schedule.ScheduleFrequencyType!=='Weekly'">
-            <dt>RunDays</dt>
+            <dt>Run Days</dt>
             <dd>
                 <div ng-repeat="temp in action.weekDay">
                     <label>
-                        {{action.weekDay[$index]}}
                         <input type="checkbox" ng-model="action.isSelected[$index]">
+                        {{action.weekDay[$index]}}
                     </label><br />
                 </div>
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.backupPolicy.Schedule.ScheduleKind || action.backupPolicy.Schedule.ScheduleKind!=='TimeBased' || !action.backupPolicy.Schedule.ScheduleFrequencyType">
-            <dt>RunTimes</dt>
+            <dt>Run Times</dt>
             <dd>
-                <div ng-repeat="runTime in action.backupPolicy.Schedule.RunTimes track by $index">
-                    <input type="text" style="width: 80%;" class="input-flat" ng-model="action.backupPolicy.Schedule.RunTimes[$index]" />
-                    <button type="button" class="btn btn-default" ng-click="action.deleteDate($index)">Delete</button>
+                <div ng-repeat="runTime in action.RunTimes track by $index">
+                    <input type="time" style="width: 80%;" ng-model="action.RunTimes[$index]" class="input-flat clear-disabled" ng-model-options="{ timezone: 'UTC' }" />
+                    <button type="button" class="btn btn-default" ng-click="action.deleteDate($index)" ng-disabled="action.RunTimes[$index]===null || action.RunTimes[$index]===undefined">Delete</button>
                 </div>
-                <input type="text" style="width: 80%;" class="input-flat" ng-model="action.date" />
-                <button type="button" class="btn btn-default" ng-click="action.add()" ng-disabled="action.date===''">Add</button>
+                <div>
+                    <input type="time" style="width: 80%;" ng-model="action.date" class="input-flat clear-disabled" ng-model-options="{ timezone: 'UTC' }" />
+                    <button type="button" class="btn btn-default" ng-click="action.add()" ng-disabled="action.date===null || action.date===undefined">Add</button>
+                </div>
             </dd>
         </dl>
 
         <dl class="dl-horizontal">
-            <dt>StorageKind</dt>
+            <dt>Storage Kind</dt>
             <dd>
                 <label>
                     <input type="radio" ng-model="action.backupPolicy.Storage.StorageKind" value="AzureBlobStore">
-                    AzureBlobStore
+                    Azure Blob Store
                 </label>
                 <label>
                     <input type="radio" ng-model="action.backupPolicy.Storage.StorageKind" value="FileShare">
-                    FileShare
+                    File Share
                 </label><br />
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.backupPolicy.Storage.StorageKind || action.backupPolicy.Storage.StorageKind!=='AzureBlobStore'">
-            <dt>FriendlyName</dt>
+            <dt>Friendly Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.FriendlyName">
             </dd>
-            <dt>ConnectionString</dt>
+            <dt>Connection String</dt>
             <dd>
-                <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.ConnectionString">
+                <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.ConnectionString" placeholder="Please re-enter connection string">
             </dd>
-            <dt>ContainerName</dt>
+            <dt>Container Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.ContainerName">
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.backupPolicy.Storage.StorageKind || action.backupPolicy.Storage.StorageKind!=='FileShare'">
-            <dt>FriendlyName</dt>
+            <dt>Friendly Name</dt>
             <dd>
-                <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.FriendlyName">
+                <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.FriendlyName" >
             </dd>
             <dt>Path</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.Path">
             </dd>
-            <dt>PrimaryUserName</dt>
+            <dt>Primary User Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.PrimaryUserName">
             </dd>
-            <dt>PrimaryPassword</dt>
+            <dt>Primary Password</dt>
             <dd>
-                <input type="password" class="input-flat" ng-model="action.backupPolicy.Storage.PrimaryPassword">
+                <input type="password" class="input-flat" ng-model="action.backupPolicy.Storage.PrimaryPassword" placeholder="Please re-enter password">
             </dd>
-            <dt>SecondaryUserName</dt>
+            <dt>Secondary User Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupPolicy.Storage.SecondaryUserName">
             </dd>
-            <dt>SecondaryPassword</dt>
+            <dt>Secondary Password</dt>
             <dd>
-                <input type="password" class="input-flat" ng-model="action.backupPolicy.Storage.SecondaryPassword">
+                <input type="password" class="input-flat" ng-model="action.backupPolicy.Storage.SecondaryPassword" placeholder="Please re-enter password">
             </dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>RetentionPolicy</dt>
+            <dt>Retention Policy</dt>
             <dd class="checkbox-container-default">
                 <input type="checkbox" ng-model="action.retentionPolicyRequired" />
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.retentionPolicyRequired">
-            <dt>MinNumberOfBackups</dt>
+            <dt>Min Number Of Backups</dt>
             <dd>
                 <input type="number" class="input-flat" ng-model="action.RetentionPolicy.MinimumNumberOfBackups">
             </dd>
-            <dt>RetentionDuration</dt>
+            <dt>Retention Duration</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.RetentionPolicy.RetentionDuration">
             </dd>
         </dl>
     </div>
         <div class="modal-footer">
-            <button type="submit" class="btn btn-primary" data-dismiss="modal" ng-click="action.delete();cancel()">Delete</button>
-            <button type="submit" class="btn btn-primary" data-dismiss="modal" ng-disabled="createBackupPolicyForm.$invalid" ng-click="ok()">Update</button>
+            <button type="submit" class="btn btn-primary" data-dismiss="modal" ng-disabled="createBackupPolicyForm.$invalid || action.isInvalid()" ng-click="ok()">Update Backup Policy</button>
             <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancel()">Cancel</button>
         </div>
 </form>

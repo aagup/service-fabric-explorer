@@ -4,48 +4,63 @@
     </div>
     <div class="modal-body">
         <dl class="dl-horizontal">
-            <dt>BackupId</dt>
+            <dt>Backup Id</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupId">
             </dd>
-            <dt>BackupLocation</dt>
+            <dt>Backup Location</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.backupLocation">
             </dd>
-            <dt>RestoreTimeout</dt>
+            <dt>Restore Timeout (in Min)</dt>
             <dd>
-                <input type="number" class="input-flat" ng-model="action.RestoreTimeout" required />
+                <input type="number" class="input-flat" ng-model="action.RestoreTimeout" />
+            </dd>
+
+        </dl>
+        <dl class="dl-horizontal collapse" uib-collapse="partitionBackupConfigurationInfo.raw && partitionBackupConfigurationInfo.raw.PolicyName">
+            <dt>Storage Details</dt>
+            <dd>
+                <label>
+                    <input type="radio" ng-model="action.option" value="Default">
+                    Use from policy
+                </label>
+                <label>
+                    <input type="radio" ng-model="action.option" value="Custom">
+                    Custom storage
+                </label><br />
             </dd>
         </dl>
-        <dl class="dl-horizontal">
-            <dt>StorageKind</dt>
+
+        <dl class="dl-horizontal collapse" uib-collapse="action.option!=='Custom'">
+            <dt>Storage Kind</dt>
             <dd>
                 <label>
                     <input type="radio" ng-model="action.storage.StorageKind" value="AzureBlobStore">
-                    AzureBlobStore
+                    Azure Blob Store
                 </label>
                 <label>
                     <input type="radio" ng-model="action.storage.StorageKind" value="FileShare">
-                    FileShare
+                    File Share
                 </label><br />
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.storage.StorageKind || action.storage.StorageKind!=='AzureBlobStore'">
-            <dt>FriendlyName</dt>
+            <dt>Friendly Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.storage.FriendlyName">
             </dd>
-            <dt>ConnectionString</dt>
+            <dt>Connection String</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.storage.ConnectionString">
             </dd>
-            <dt>ContainerName</dt>
+            <dt>Container Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.storage.ContainerName">
             </dd>
         </dl>
         <dl class="dl-horizontal collapse" uib-collapse="!action.storage.StorageKind || action.storage.StorageKind!=='FileShare'">
-            <dt>FriendlyName</dt>
+            <dt>Friendly Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.storage.FriendlyName">
             </dd>
@@ -53,19 +68,19 @@
             <dd>
                 <input type="text" class="input-flat" ng-model="action.storage.Path">
             </dd>
-            <dt>PrimaryUserName</dt>
+            <dt>Primary User Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.storage.PrimaryUserName">
             </dd>
-            <dt>PrimaryPassword</dt>
+            <dt>Primary Password</dt>
             <dd>
                 <input type="password" class="input-flat" ng-model="action.storage.PrimaryPassword">
             </dd>
-            <dt>SecondaryUserName</dt>
+            <dt>Secondary User Name</dt>
             <dd>
                 <input type="text" class="input-flat" ng-model="action.storage.SecondaryUserName">
             </dd>
-            <dt>SecondaryPassword</dt>
+            <dt>Secondary Password</dt>
             <dd>
                 <input type="password" class="input-flat" ng-model="action.storage.SecondaryPassword">
             </dd>

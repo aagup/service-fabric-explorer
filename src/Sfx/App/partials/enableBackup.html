@@ -1,17 +1,15 @@
 <form name="enableBackupForm">
+    <div class="modal-header">
+        <h4 class="modal-title">Configure {{action.constructor.name}} Backup</h4>
+    </div>
     <div class="modal-body">
-        <dl class="dl-horizontal">
-            <dt>Backup Policy Name</dt>
-            <dd>
-                <select ng-model="action.backupPolicyName" class="input-flat">
-                    <option value="" class="input-flat">Select Backup Policy</option>
-                    <option ng-repeat="backupPolicy in action.data.backupPolicies.collection" class="input-flat" value="{{backupPolicy.raw.Name}}">{{backupPolicy.raw.Name}}</option>
-                </select>
-            </dd>
-        </dl>
+            <p>Choose Backup Policy for configuring {{action.constructor.name}} Backup?</p>
+            <select ng-model="action.backupPolicyName" class="input-flat">
+                <option ng-repeat="backupPolicy in action.data.backupPolicies.collection" class="input-flat" value="{{backupPolicy.raw.Name}}">{{backupPolicy.raw.Name}}</option>
+            </select>
     </div>
     <div class="modal-footer">
-        <button type="submit" class="btn btn-primary" data-dismiss="modal" ng-disabled="enableBackupForm.$invalid" ng-click="ok()">Enable Backup</button>
+        <button type="submit" class="btn btn-primary" data-dismiss="modal" ng-disabled="action.backupPolicyName===null || action.backupPolicyName===undefined" ng-click="ok()">Enable Backup</button>
         <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancel()">Cancel</button>
     </div>
 </form>

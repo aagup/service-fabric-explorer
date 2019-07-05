@@ -79,6 +79,7 @@ module Sfx {
         }
 
         protected refreshCommon(messageHandler?: IResponseMessageHandler): angular.IPromise<any> {
+            this.data.hasBackupRestoreService();
             return this.data.getService(this.appId, this.serviceId, true, messageHandler)
                 .then(service => {
                     this.$scope.service = service;

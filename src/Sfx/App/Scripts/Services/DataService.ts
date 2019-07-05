@@ -16,6 +16,7 @@ module Sfx {
         public imageStore: ImageStore;
         public networks: NetworkCollection;
         public backupPolicies: BackupPolicyCollection;
+        public hide: boolean;
 
         public constructor(
             public routes: RoutesService,
@@ -40,6 +41,7 @@ module Sfx {
             this.imageStore = new ImageStore(this);
             this.networks = new NetworkCollection(this);
             this.backupPolicies = new BackupPolicyCollection(this);
+            this.hasBackupRestoreService();
         }
 
         public actionsEnabled(): boolean {
@@ -56,6 +58,16 @@ module Sfx {
             applicationsHealthStateFilter: HealthStateFilterFlags = HealthStateFilterFlags.Default
         ): ClusterHealth {
             return new ClusterHealth(this, eventsHealthStateFilter, nodesHealthStateFilter, applicationsHealthStateFilter);
+        }
+
+        public hasBackupRestoreService(): boolean {
+            Utils.getHttpResponseData(this.restClient.getClusterManifest()).then(manifest => {
+                if (manifest.Manifest.indexOf("BackupRestoreService") !== -1)
+                    this.hide = false;
+                else
+                    this.hide = true;
+            });
+            return !this.hide;
         }
 
         public getClusterManifest(forceRefresh: boolean = false, messageHandler?: IResponseMessageHandler): angular.IPromise<ClusterManifest> {

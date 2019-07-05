@@ -98,73 +98,75 @@ module Sfx {
                 return;
             }
 
-            this.actions.add(new ActionWithDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "enableServiceBackup",
-                "Enable/Update Service Backup",
-                "Enabling Service Backup",
-                () => this.data.restClient.enableServiceBackup(this).then(() => {
-                    this.serviceBackupConfigurationInfoCollection.refresh();
-                }),
-                () => true,
-                <angular.ui.bootstrap.IModalSettings>{
-                    templateUrl: "partials/enableBackup.html",
-                    controller: ActionController,
-                    resolve: {
-                        action: () => this
-                    }
-                },
-                null
-            ));
+            if (!this.data.hide) {
+                this.actions.add(new ActionWithDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "enableServiceBackup",
+                    "Configure Service Backup",
+                    "Enabling Service Backup",
+                    () => this.data.restClient.enableServiceBackup(this).then(() => {
+                        this.serviceBackupConfigurationInfoCollection.refresh();
+                    }),
+                    () => true,
+                    <angular.ui.bootstrap.IModalSettings>{
+                        templateUrl: "partials/enableBackup.html",
+                        controller: ActionController,
+                        resolve: {
+                            action: () => this
+                        }
+                    },
+                    null
+                ));
 
-            this.actions.add(new ActionWithDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "disableServiceBackup",
-                "Disable Service Backup",
-                "Disabling Service Backup",
-                () => this.data.restClient.disableServiceBackup(this).then(() => {
-                    this.serviceBackupConfigurationInfoCollection.refresh();
-                }),
-                () => this.serviceBackupConfigurationInfoCollection.collection.length && this.serviceBackupConfigurationInfoCollection.collection[0].raw && this.serviceBackupConfigurationInfoCollection.collection[0].raw.Kind === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.PolicyInheritedFrom === "Service",
-                <angular.ui.bootstrap.IModalSettings>{
-                    templateUrl: "partials/disableBackup.html",
-                    controller: ActionController,
-                    resolve: {
-                        action: () => this
-                    }
-                },
-                null
-            ));
+                this.actions.add(new ActionWithDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "disableServiceBackup",
+                    "Disable Service Backup",
+                    "Disabling Service Backup",
+                    () => this.data.restClient.disableServiceBackup(this).then(() => {
+                        this.serviceBackupConfigurationInfoCollection.refresh();
+                    }),
+                    () => this.serviceBackupConfigurationInfoCollection.collection.length && this.serviceBackupConfigurationInfoCollection.collection[0].raw && this.serviceBackupConfigurationInfoCollection.collection[0].raw.Kind === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.PolicyInheritedFrom === "Service",
+                    <angular.ui.bootstrap.IModalSettings>{
+                        templateUrl: "partials/disableBackup.html",
+                        controller: ActionController,
+                        resolve: {
+                            action: () => this
+                        }
+                    },
+                    null
+                ));
 
-            this.actions.add(new ActionWithConfirmationDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "suspendServiceBackup",
-                "Suspend Service Backup",
-                "Suspending...",
-                () => this.data.restClient.suspendServiceBackup(this.id).then(() => {
-                    this.serviceBackupConfigurationInfoCollection.refresh();
-                }),
-                () => this.serviceBackupConfigurationInfoCollection.collection.length && this.serviceBackupConfigurationInfoCollection.collection[0].raw && this.serviceBackupConfigurationInfoCollection.collection[0].raw.Kind === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.PolicyInheritedFrom === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.SuspensionInfo.IsSuspended === false,
-                "Confirm Service Backup Suspension",
-                `Suspend service backup for ${this.name} ?`,
-                this.name));
+                this.actions.add(new ActionWithConfirmationDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "suspendServiceBackup",
+                    "Suspend Service Backup",
+                    "Suspending...",
+                    () => this.data.restClient.suspendServiceBackup(this.id).then(() => {
+                        this.serviceBackupConfigurationInfoCollection.refresh();
+                    }),
+                    () => this.serviceBackupConfigurationInfoCollection.collection.length && this.serviceBackupConfigurationInfoCollection.collection[0].raw && this.serviceBackupConfigurationInfoCollection.collection[0].raw.Kind === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.SuspensionInfo.IsSuspended === false,
+                    "Confirm Service Backup Suspension",
+                    `Suspend service backup for ${this.name} ?`,
+                    this.name));
 
-            this.actions.add(new ActionWithConfirmationDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "resumeServiceBackup",
-                "Resume Service Backup",
-                "Resuming...",
-                () => this.data.restClient.resumeServiceBackup(this.id).then(() => {
-                    this.serviceBackupConfigurationInfoCollection.refresh();
-                }),
-                () => this.serviceBackupConfigurationInfoCollection.collection.length && this.serviceBackupConfigurationInfoCollection.collection[0].raw && this.serviceBackupConfigurationInfoCollection.collection[0].raw.Kind === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.PolicyInheritedFrom === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.SuspensionInfo.IsSuspended === true,
-                "Confirm Service Backup Resumption",
-                `Resume service backup for ${this.name} ?`,
-                this.name));
+                this.actions.add(new ActionWithConfirmationDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "resumeServiceBackup",
+                    "Resume Service Backup",
+                    "Resuming...",
+                    () => this.data.restClient.resumeServiceBackup(this.id).then(() => {
+                        this.serviceBackupConfigurationInfoCollection.refresh();
+                    }),
+                    () => this.serviceBackupConfigurationInfoCollection.collection.length && this.serviceBackupConfigurationInfoCollection.collection[0].raw && this.serviceBackupConfigurationInfoCollection.collection[0].raw.Kind === "Service" && this.serviceBackupConfigurationInfoCollection.collection[0].raw.SuspensionInfo.IsSuspended === true,
+                    "Confirm Service Backup Resumption",
+                    `Resume service backup for ${this.name} ?`,
+                    this.name));
+            }
 
             
         }

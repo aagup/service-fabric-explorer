@@ -45,14 +45,10 @@ module Sfx {
                 "imagestore": { name: "Image Store" },
                 "manifest": { name: "Manifest" },
                 "events": { name: "Events" },
-                "backupPolicies": { name: "Backups" },
+                "backupPolicies": { name: "Backup Policies" },
             });
 
             $scope.actions = new ActionCollection(this.data.telemetry, this.data.$q);
-
-            if (this.data.actionsEnabled()) {
-                this.setupActions();
-            }
 
             this.tabs["essentials"].refresh = (messageHandler) => this.refreshEssentials(messageHandler);
             this.tabs["details"].refresh = (messageHandler) => this.refreshDetails(messageHandler);
@@ -177,20 +173,29 @@ module Sfx {
             return this.$scope.imageStore.refresh(messageHandler);
         }
         private refreshBackupPolicies(messageHandler?: IResponseMessageHandler): angular.IPromise<any> {
+            this.data.hasBackupRestoreService();
+            if (this.data.actionsEnabled()) {
+                this.setupActions();
+            }
             return this.$scope.backupPolicies.refresh(messageHandler);
         }
         private setupActions() {
-            this.$scope.actions.add(new ActionCreateBackupPolicy(this.data));
+            if (!this.data.hide)
+                this.$scope.actions.add(new ActionCreateBackupPolicy(this.data));
         }
     }
     export class ActionCreateBackupPolicy extends ActionWithDialog {
 
         public backupPolicy: IRawBackupPolicy; 
-        public date: string;
+        public date: Date;
         public retentionPolicyRequired: boolean;
         public RetentionPolicy: IRawRetentionPolicy;
         public weekDay: string[];
         public isSelected: boolean[];
+        public RunTimes: Date[];
+        public days: number;
+        public hours: number;
+        public minutes: number;
          
         constructor(data: DataService) {
             super(
@@ -210,7 +215,8 @@ module Sfx {
                 },
                 null);
             this.retentionPolicyRequired = false;
-            this.date = "";
+            this.date = new Date();
+            this.date.setUTCSeconds(0, 0);
             this.weekDay = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
             this.isSelected = [false, false, false, false, false, false, false];
         }
@@ -222,6 +228,13 @@ module Sfx {
             }
             else
                 this.backupPolicy['RetentionPolicy'] = null;
+            if (this.backupPolicy.Schedule.ScheduleKind === 'TimeBased') {
+                this.backupPolicy.Schedule.RunTimes = [];
+                for (let time of this.RunTimes)
+                    this.backupPolicy.Schedule.RunTimes.push(time.toISOString().substr(11, 5) + "Z");
+            }
+            else
+                this.backupPolicy.Schedule.Interval = "P" + this.days.toString() + "DT" + this.hours.toString() + "H" + this.minutes.toString() + "M";
             if (this.backupPolicy.Schedule.ScheduleKind === 'TimeBased' && this.backupPolicy.Schedule.ScheduleFrequencyType === 'Weekly') {
                 this.backupPolicy.Schedule.RunDays = [];
                 for (let i = 0; i < 7; i++) {
@@ -232,27 +245,66 @@ module Sfx {
             return data.restClient.createBackupPolicy(this.backupPolicy);
         }
 
+        public isInvalid(): boolean {
+            if (this.backupPolicy.Schedule === null || this.backupPolicy.Schedule === undefined)
+                return true;
+            if (this.backupPolicy.Schedule.ScheduleKind === "FrequencyBased") {
+                if (this.days === null || this.hours === null || this.minutes === null || this.days === undefined || this.hours === undefined || this.minutes === undefined || (this.days === 0 && this.hours === 0 && this.minutes === 0))
+                    return true;
+            }
+            else {
+                if (this.RunTimes === null || this.RunTimes === undefined)
+                    return true;
+                if (this.backupPolicy.Schedule.ScheduleFrequencyType === "Weekly") {
+                    let check = false;
+                    for (let i = 0; i < 7; i++) {
+                        check = check || this.isSelected[i];
+                    }
+                    if (check === false)
+                        return true;
+                }
+            }
+            if (this.backupPolicy.Storage === null)
+                return true;
+            if (this.backupPolicy.Storage.StorageKind === null || this.backupPolicy.Storage.StorageKind === undefined)
+                return true;
+            if (this.backupPolicy.Storage.StorageKind === "FileShare") {
+                if (this.backupPolicy.Storage.Path === null || this.backupPolicy.Storage.Path === undefined)
+                    return true;
+            }
+            else {
+                if (this.backupPolicy.Storage.ConnectionString === null || this.backupPolicy.Storage.ConnectionString === undefined || this.backupPolicy.Storage.ContainerName === null || this.backupPolicy.Storage.ContainerName === undefined)
+                    return true;
+            }
+            return false;
+        }
+
         public add(): void {
-            if (this.backupPolicy.Schedule.RunTimes === null || this.backupPolicy.Schedule.RunTimes === undefined)
-                this.backupPolicy.Schedule.RunTimes = [];
-            this.backupPolicy.Schedule.RunTimes.push(this.date);
-            this.date = "";
+            if (this.RunTimes === null || this.RunTimes === undefined)
+                this.RunTimes = [];
+            this.RunTimes.push(this.date);
+            this.date = new Date();
+            this.date.setUTCSeconds(0, 0);
         }
 
         public deleteDate(index:number): void {
-            this.backupPolicy.Schedule.RunTimes.splice(index,1);
+            this.RunTimes.splice(index,1);
         }
     }
 
     export class ActionUpdateBackupPolicy extends ActionWithDialog {
 
         public backupPolicy: IRawBackupPolicy;
-        public date: string;
+        public date: Date;
         public retentionPolicyRequired: boolean;
         public RetentionPolicy: IRawRetentionPolicy;
         public weekDay: string[];
         public isSelected: boolean[];
         public delete: any;
+        public RunTimes: Date[];
+        public days: number;
+        public hours: number;
+        public minutes: number;
 
         constructor(data: DataService, raw: IRawBackupPolicy) {
             super(
@@ -272,7 +324,8 @@ module Sfx {
                 },
                 null);
             this.retentionPolicyRequired = false;
-            this.date = "";
+            this.date = new Date();
+            this.date.setUTCSeconds(0, 0);
             this.weekDay = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
             this.isSelected = [false, false, false, false, false, false, false];
             let dayIndexMapping = {};
@@ -289,6 +342,22 @@ module Sfx {
                 for (let day of this.backupPolicy.Schedule.RunDays)
                     this.isSelected[dayIndexMapping[day]] = true;
             }
+            if (this.backupPolicy.Schedule.ScheduleKind === 'TimeBased') {
+                this.RunTimes = [];
+                for (let date of this.backupPolicy.Schedule.RunTimes) {
+                    this.RunTimes.push(new Date(date.substr(0, 16) + "Z"));
+                }
+            }
+            else {
+                let iso8601DurationRegex = /(-)?P(?:([.,\d]+)Y)?(?:([.,\d]+)M)?(?:([.,\d]+)W)?(?:([.,\d]+)D)?T(?:([.,\d]+)H)?(?:([.,\d]+)M)?(?:([.,\d]+)S)?/;
+                let matches = this.backupPolicy.Schedule.Interval.match(iso8601DurationRegex);
+                this.days = (matches[5] === undefined ? 0 : +matches[5]);
+                this.hours= (matches[6] === undefined ? 0 : +matches[6]);
+                this.minutes = (matches[7] === undefined ? 0 : +matches[7]);
+            }
+            this.backupPolicy.Storage.PrimaryPassword = null;
+            this.backupPolicy.Storage.SecondaryPassword = null;
+            this.backupPolicy.Storage.ConnectionString = null;
             this.delete = () => {
                 data.restClient.deleteBackupPolicy(this.backupPolicy.Name);
             }
@@ -301,6 +370,13 @@ module Sfx {
             }
             else
                 this.backupPolicy['RetentionPolicy'] = null;
+            if (this.backupPolicy.Schedule.ScheduleKind === 'TimeBased') {
+                this.backupPolicy.Schedule.RunTimes = [];
+                for (let time of this.RunTimes)
+                    this.backupPolicy.Schedule.RunTimes.push(time.toISOString().substr(11, 5) + "Z");
+            }
+            else
+                this.backupPolicy.Schedule.Interval = "P" + this.days.toString() + "DT" + this.hours.toString() + "H" + this.minutes.toString() + "M";
             if (this.backupPolicy.Schedule.ScheduleKind === 'TimeBased' && this.backupPolicy.Schedule.ScheduleFrequencyType === 'Weekly') {
                 this.backupPolicy.Schedule.RunDays = [];
                 for (let i = 0; i < 7; i++) {
@@ -312,14 +388,49 @@ module Sfx {
         }
 
         public add(): void {
-            if (this.backupPolicy.Schedule.RunTimes === null || this.backupPolicy.Schedule.RunTimes === undefined)
-                this.backupPolicy.Schedule.RunTimes = [];
-            this.backupPolicy.Schedule.RunTimes.push(this.date);
-            this.date = "";
+            if (this.RunTimes === null || this.RunTimes === undefined)
+                this.RunTimes = [];
+            this.RunTimes.push(this.date);
+            this.date = new Date();
+            this.date.setUTCSeconds(0, 0);
         }
 
         public deleteDate(index: number): void {
-            this.backupPolicy.Schedule.RunTimes.splice(index, 1);
+            this.RunTimes.splice(index, 1);
+        }
+
+        public isInvalid(): boolean {
+            if (this.backupPolicy.Schedule === null || this.backupPolicy.Schedule === undefined)
+                return true;
+            if (this.backupPolicy.Schedule.ScheduleKind === "FrequencyBased") {
+                if (this.days === null || this.hours === null || this.minutes === null || this.days === undefined || this.hours === undefined || this.minutes === undefined || (this.days === 0 && this.hours === 0 && this.minutes === 0))
+                    return true;
+            }
+            else {
+                if (this.RunTimes === null || this.RunTimes === undefined)
+                    return true;
+                if (this.backupPolicy.Schedule.ScheduleFrequencyType === "Weekly") {
+                    let check = false;
+                    for (let i = 0; i < 7; i++) {
+                        check = check || this.isSelected[i];
+                    }
+                    if (check === false)
+                        return true;
+                }
+            }
+            if (this.backupPolicy.Storage === null)
+                return true;
+            if (this.backupPolicy.Storage.StorageKind === null || this.backupPolicy.Storage.StorageKind === undefined)
+                return true;
+            if (this.backupPolicy.Storage.StorageKind === "FileShare") {
+                if (this.backupPolicy.Storage.Path === null || this.backupPolicy.Storage.Path === undefined)
+                    return true;
+            }
+            else {
+                if (this.backupPolicy.Storage.ConnectionString === null || this.backupPolicy.Storage.ConnectionString === undefined || this.backupPolicy.Storage.ContainerName === null || this.backupPolicy.Storage.ContainerName === undefined)
+                    return true;
+            }
+            return false;
         }
 
     }

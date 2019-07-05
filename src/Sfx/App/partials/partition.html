@@ -57,7 +57,7 @@
             <sfx-detail-list list="partition.replicas" list-settings="listSettings"></sfx-detail-list>
         </div>
 
-        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System'">
+        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System' && partition.latestPartitionBackup.collection.length && !partition.data.hide">
             <h4>Latest Backup</h4>
             <sfx-detail-view-part data="partition.latestPartitionBackup.collection[0]"></sfx-detail-view-part>
         </div>
@@ -80,17 +80,17 @@
             <sfx-detail-view-part data="partition.loadInformation"></sfx-detail-view-part>
         </div>
 
-        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System'">
+        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System' && !partition.data.hide">
             <h4>Partition Backup Configuration</h4>
             <sfx-detail-view-part data="partition.partitionBackupConfigurationInfo"></sfx-detail-view-part>
         </div>
 
-        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System' && partition.partitionBackupProgress.raw.TimeStampUtc">
+        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System' && partition.partitionBackupProgress.raw.TimeStampUtc && !partition.data.hide">
             <h4>Partition Backup Progress</h4>
             <sfx-detail-view-part data="partition.partitionBackupProgress"></sfx-detail-view-part>
         </div>
 
-        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System' && partition.partitionRestoreProgress.raw.TimeStampUtc">
+        <div class="detail-pane" ng-if="partition.isStatefulService && partition.parent.parent.raw.TypeName !== 'System' && partition.partitionRestoreProgress.raw.TimeStampUtc && !partition.data.hide">
             <h4>Partition Restore Progress</h4>
             <sfx-detail-view-part data="partition.partitionRestoreProgress"></sfx-detail-view-part>
         </div>

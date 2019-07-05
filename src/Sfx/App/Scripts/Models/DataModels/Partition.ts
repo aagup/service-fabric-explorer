@@ -22,6 +22,7 @@ module Sfx {
         public partitionRestoreProgress: PartitionRestoreProgress;
         public BackupTimeout: number;
         public RestoreTimeout: number;
+        public option: string;
 
         public constructor(data: DataService, raw: IRawPartition, public parent: Service) {
             super(data, raw, parent);
@@ -35,10 +36,13 @@ module Sfx {
             this.partitionRestoreProgress = new PartitionRestoreProgress(this.data, this);
             this.partitionBackupList = new PartitionBackupCollection(this.data, this);
             this.latestPartitionBackup = new SinglePartitionBackupCollection(this.data, this);
+            this.BackupTimeout = 10;
+            this.RestoreTimeout = 10;
+            this.cleanBackup = false;
+            this.option = "Default";
             if (this.data.actionsEnabled()) {
                 this.setUpActions();
             }
-            this.cleanBackup = false;
         }
 
         public get isStatefulService(): boolean {
@@ -68,109 +72,112 @@ module Sfx {
         private setUpActions(): void {
             if (this.isStatelessService)
                 return;
-            this.actions.add(new ActionWithDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "enablePartitionBackup",
-                "Enable/Update Partition Backup",
-                "Enabling Partition Backup",
-                () => this.data.restClient.enablePartitionBackup(this).then(() => {
-                    this.partitionBackupConfigurationInfo.refresh();
-                }),
-                () => true,
-                <angular.ui.bootstrap.IModalSettings>{
-                    templateUrl: "partials/enableBackup.html",
-                    controller: ActionController,
-                    resolve: {
-                        action: () => this
-                    }
-                },
-                null
-            ));
 
-            this.actions.add(new ActionWithDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "disablePartitionBackup",
-                "Disable Partition Backup",
-                "Disabling Partition Backup",
-                () => this.data.restClient.disablePartitionBackup(this).then(() => {
-                    this.partitionBackupConfigurationInfo.refresh();
-                }),
-                () => this.partitionBackupConfigurationInfo.raw && this.partitionBackupConfigurationInfo.raw.Kind === "Partition" && this.partitionBackupConfigurationInfo.raw.PolicyInheritedFrom === "Partition",
-                <angular.ui.bootstrap.IModalSettings>{
-                    templateUrl: "partials/disableBackup.html",
-                    controller: ActionController,
-                    resolve: {
-                        action: () => this
-                    }
-                },
-                null
-            ));
+            if (!this.data.hide) {
+                this.actions.add(new ActionWithDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "enablePartitionBackup",
+                    "Configure Partition Backup",
+                    "Enabling Partition Backup",
+                    () => this.data.restClient.enablePartitionBackup(this).then(() => {
+                        this.partitionBackupConfigurationInfo.refresh();
+                    }),
+                    () => true,
+                    <angular.ui.bootstrap.IModalSettings>{
+                        templateUrl: "partials/enableBackup.html",
+                        controller: ActionController,
+                        resolve: {
+                            action: () => this
+                        }
+                    },
+                    null
+                ));
 
-            this.actions.add(new ActionWithConfirmationDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "suspendPartitionBackup",
-                "Suspend Partition Backup",
-                "Suspending...",
-                () => this.data.restClient.suspendPartitionBackup(this.id).then(() => {
-                    this.partitionBackupConfigurationInfo.refresh();
-                }),
-                () => this.partitionBackupConfigurationInfo.raw && this.partitionBackupConfigurationInfo.raw.Kind === "Partition" && this.partitionBackupConfigurationInfo.raw.PolicyInheritedFrom === "Partition" && this.partitionBackupConfigurationInfo.raw.SuspensionInfo.IsSuspended === false,
-                "Confirm Partition Backup Suspension",
-                `Suspend partition backup for ${this.name} ?`,
-                this.name));
+                this.actions.add(new ActionWithDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "disablePartitionBackup",
+                    "Disable Partition Backup",
+                    "Disabling Partition Backup",
+                    () => this.data.restClient.disablePartitionBackup(this).then(() => {
+                        this.partitionBackupConfigurationInfo.refresh();
+                    }),
+                    () => this.partitionBackupConfigurationInfo.raw && this.partitionBackupConfigurationInfo.raw.Kind === "Partition" && this.partitionBackupConfigurationInfo.raw.PolicyInheritedFrom === "Partition",
+                    <angular.ui.bootstrap.IModalSettings>{
+                        templateUrl: "partials/disableBackup.html",
+                        controller: ActionController,
+                        resolve: {
+                            action: () => this
+                        }
+                    },
+                    null
+                ));
 
-            this.actions.add(new ActionWithConfirmationDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "resumePartitionBackup",
-                "Resume Partition Backup",
-                "Resuming...",
-                () => this.data.restClient.resumePartitionBackup(this.id).then(() => {
-                    this.partitionBackupConfigurationInfo.refresh();
-                }),
-                () => this.partitionBackupConfigurationInfo.raw && this.partitionBackupConfigurationInfo.raw.Kind === "Partition" && this.partitionBackupConfigurationInfo.raw.PolicyInheritedFrom === "Partition" && this.partitionBackupConfigurationInfo.raw.SuspensionInfo.IsSuspended === true,
-                "Confirm Partition Backup Resumption",
-                `Resume partition backup for ${this.name} ?`,
-                this.name));
+                this.actions.add(new ActionWithConfirmationDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "suspendPartitionBackup",
+                    "Suspend Partition Backup",
+                    "Suspending...",
+                    () => this.data.restClient.suspendPartitionBackup(this.id).then(() => {
+                        this.partitionBackupConfigurationInfo.refresh();
+                    }),
+                    () => this.partitionBackupConfigurationInfo.raw && this.partitionBackupConfigurationInfo.raw.Kind === "Partition" && this.partitionBackupConfigurationInfo.raw.SuspensionInfo.IsSuspended === false,
+                    "Confirm Partition Backup Suspension",
+                    `Suspend partition backup for ${this.name} ?`,
+                    this.name));
 
-            this.actions.add(new ActionWithDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "triggerPartitionBackup",
-                "Trigger Partition Backup",
-                "Triggering Partition Backup",
-                () => this.data.restClient.triggerPartitionBackup(this),
-                () => true,
-                <angular.ui.bootstrap.IModalSettings>{
-                    templateUrl: "partials/triggerPartitionBackup.html",
-                    controller: ActionController,
-                    resolve: {
-                        action: () => this
-                    }
-                },
-                null
-            ));
+                this.actions.add(new ActionWithConfirmationDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "resumePartitionBackup",
+                    "Resume Partition Backup",
+                    "Resuming...",
+                    () => this.data.restClient.resumePartitionBackup(this.id).then(() => {
+                        this.partitionBackupConfigurationInfo.refresh();
+                    }),
+                    () => this.partitionBackupConfigurationInfo.raw && this.partitionBackupConfigurationInfo.raw.Kind === "Partition" && this.partitionBackupConfigurationInfo.raw.SuspensionInfo.IsSuspended === true,
+                    "Confirm Partition Backup Resumption",
+                    `Resume partition backup for ${this.name} ?`,
+                    this.name));
 
-            this.actions.add(new ActionWithDialog(
-                this.data.$uibModal,
-                this.data.$q,
-                "restorePartitionBackup",
-                "Restore Partition Backup",
-                "Restoring Partition Backup",
-                () => this.data.restClient.restorePartitionBackup(this),
-                () => true,
-                <angular.ui.bootstrap.IModalSettings>{
-                    templateUrl: "partials/restorePartitionBackup.html",
-                    controller: ActionController,
-                    resolve: {
-                        action: () => this
-                    }
-                },
-                null
-            ));
+                this.actions.add(new ActionWithDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "triggerPartitionBackup",
+                    "Trigger Partition Backup",
+                    "Triggering Partition Backup",
+                    () => this.data.restClient.triggerPartitionBackup(this),
+                    () => true,
+                    <angular.ui.bootstrap.IModalSettings>{
+                        templateUrl: "partials/triggerPartitionBackup.html",
+                        controller: ActionController,
+                        resolve: {
+                            action: () => this
+                        }
+                    },
+                    null
+                ));
+
+                this.actions.add(new ActionWithDialog(
+                    this.data.$uibModal,
+                    this.data.$q,
+                    "restorePartitionBackup",
+                    "Trigger Partition Restore",
+                    "Triggering Partition Restore",
+                    () => this.data.restClient.restorePartitionBackup(this),
+                    () => true,
+                    <angular.ui.bootstrap.IModalSettings>{
+                        templateUrl: "partials/restorePartitionBackup.html",
+                        controller: ActionController,
+                        resolve: {
+                            action: () => this
+                        }
+                    },
+                    null
+                ));
+            }
         }
     }
 
@@ -286,8 +293,22 @@ module Sfx {
             ]
         };
         public action: ActionWithDialog;
+        public restore: ActionWithConfirmationDialog;
         public constructor(data: DataService, raw: IRawPartitionBackup, public parent: Partition) {
             super(data, raw, parent);
+            parent.backupId = raw.BackupId;
+            parent.backupLocation = raw.BackupLocation;
+            this.restore = new ActionWithConfirmationDialog(
+                this.data.$uibModal,
+                this.data.$q,
+                "restorePartitionBackup",
+                "Restore Partition Backup",
+                "Restoring...",
+                () => this.data.restClient.restorePartitionBackup(parent),
+                () => true,
+                "Confirm Restore of Partition",
+                `Restore backup for ${this.parent.name} ?`,
+                this.parent.name);
             if (raw)
                 this.action = new ActionWithDialog(
                     data.$uibModal,
@@ -308,7 +329,9 @@ module Sfx {
             else
                 this.action = null;
         }
-        
+        public restorePartition(): void {
+            this.restore.runWithCallbacks.apply(this.restore);
+        }
 
     }
 }

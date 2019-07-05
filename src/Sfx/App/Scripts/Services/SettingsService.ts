@@ -115,10 +115,10 @@ module Sfx {
         public getNewOrExistingBackupPolicyListSettings(listKey: string = "backupPolicies") {
             return this.getNewOrExistingListSettings(listKey, [null], [
                 new ListColumnSetting("raw.Name", "Name", ["raw.Name"], false, (item, property) => "<a href='#/tab/backupPolicies'>" + property + "</a>", 1, item => item.action.runWithCallbacks.apply(item.action)),
-                new ListColumnSetting("raw.Schedule.ScheduleKind", "ScheduleKind"),
-                new ListColumnSetting("raw.Storage.StorageKind", "StorageKind"),
-                new ListColumnSetting("raw.AutoRestoreOnDataLoss", "AutoRestoreOnDataLoss"),
-                new ListColumnSetting("raw.MaxIncrementalBackups", "MaxIncrementalBackups"),
+                new ListColumnSetting("raw.Schedule.ScheduleKind", "Schedule Kind"),
+                new ListColumnSetting("raw.Storage.StorageKind", "Storage Kind"),
+                new ListColumnSetting("raw.AutoRestoreOnDataLoss", "AutoRestore On DataLoss"),
+                new ListColumnSetting("raw.MaxIncrementalBackups", "Max Incremental Backups"),
             ]);
         };
 

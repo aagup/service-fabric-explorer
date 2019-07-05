@@ -40,7 +40,6 @@ module Sfx {
 
             this.appId = IdUtils.getAppId(this.routeParams);
             this.appTypeName = IdUtils.getAppTypeName(this.routeParams);
-
             this.selectTreeNode([
                 IdGenerator.cluster(),
                 IdGenerator.appGroup(),
@@ -96,6 +95,7 @@ module Sfx {
         }
 
         protected refreshCommon(messageHandler?: IResponseMessageHandler): angular.IPromise<any> {
+            this.data.hasBackupRestoreService();
             return this.$q.all([
                 this.data.getApp(this.appId, true, messageHandler).then(data => {
                     this.$scope.app = data;
